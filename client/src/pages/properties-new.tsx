@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertProperty } from "@shared/schema";
+import type { InsertProperty } from "@/lib/types";
 
 export default function NewPropertyPage() {
   const [, setLocation] = useLocation();
@@ -14,7 +14,8 @@ export default function NewPropertyPage() {
 
   const createPropertyMutation = useMutation({
     mutationFn: async (data: InsertProperty) => {
-      return apiRequest("POST", "/api/properties", data);
+      const response = await apiRequest("POST", "/api/properties", data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
@@ -37,6 +38,10 @@ export default function NewPropertyPage() {
     createPropertyMutation.mutate(data);
   };
 
+  const handleCancel = () => {
+    setLocation("/properties");
+  };
+
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="flex items-center gap-4">
@@ -57,6 +62,7 @@ export default function NewPropertyPage() {
 
       <PropertyForm
         onSubmit={handleSubmit}
+        onCancel={handleCancel}
         isLoading={createPropertyMutation.isPending}
       />
     </div>

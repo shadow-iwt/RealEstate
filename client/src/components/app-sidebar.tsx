@@ -9,6 +9,9 @@ import {
   Settings,
   Plus,
   ChevronDown,
+  Zap,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import {
   Sidebar,
@@ -65,6 +68,24 @@ const mainNavItems = [
   },
 ];
 
+const aiFeatures = [
+  {
+    title: "Lead Hunter",
+    url: "/lead-hunter",
+    icon: Target,
+  },
+  {
+    title: "Lead Enrichment",
+    url: "/lead-enrichment",
+    icon: TrendingUp,
+  },
+  {
+    title: "Lead Scoring",
+    url: "/lead-scoring",
+    icon: Zap,
+  },
+];
+
 const settingsNavItems = [
   {
     title: "Settings",
@@ -74,7 +95,12 @@ const settingsNavItems = [
 ];
 
 export function AppSidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    setLocation("/landing");
+  };
 
   return (
     <Sidebar>
@@ -119,6 +145,33 @@ export function AppSidebar() {
                       className="gap-3"
                     >
                       <Link href={item.url} data-testid={`nav-${item.title.toLowerCase()}`}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground">
+            AI Features
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {aiFeatures.map((item) => {
+                const isActive = location === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      className="gap-3"
+                    >
+                      <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(" ", "-")}`}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -184,7 +237,9 @@ export function AppSidebar() {
             <DropdownMenuItem data-testid="menu-item-profile">Profile</DropdownMenuItem>
             <DropdownMenuItem data-testid="menu-item-settings">Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem data-testid="menu-item-logout">Log out</DropdownMenuItem>
+            <DropdownMenuItem data-testid="menu-item-logout" onClick={handleLogout}>
+              Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>

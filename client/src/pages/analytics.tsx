@@ -22,7 +22,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useState } from "react";
-import type { Lead, Property, Agent } from "@shared/schema";
+import type { Lead, Property, Agent } from "@/lib/types";
 
 interface AnalyticsData {
   totalLeads: number;

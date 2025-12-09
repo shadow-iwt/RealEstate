@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Lead } from "@shared/schema";
+import type { Lead } from "@/lib/types";
 
 interface LeadCardProps {
   lead: Lead;

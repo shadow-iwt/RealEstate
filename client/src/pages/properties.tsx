@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Filter, Building2, LayoutGrid, List } from "lucide-react";
 import { Link } from "wouter";
-import type { Property } from "@shared/schema";
+import type { Property } from "@/lib/types";
 
 const statusOptions = [
   { value: "all", label: "All Status" },
@@ -60,8 +60,8 @@ export default function PropertiesPage() {
         property.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
         property.city.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus = statusFilter === "all" || property.status === statusFilter;
-      const matchesType = typeFilter === "all" || property.propertyType === typeFilter;
+      const matchesStatus = statusFilter === "all" || (property.status || "").toLowerCase() === statusFilter.toLowerCase();
+      const matchesType = typeFilter === "all" || (property.propertyType || "").toLowerCase() === typeFilter.toLowerCase();
 
       return matchesSearch && matchesStatus && matchesType;
     })

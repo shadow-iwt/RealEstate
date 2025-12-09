@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Property } from "@shared/schema";
+import type { Property } from "@/lib/types";
 import { Link } from "wouter";
 
 interface PropertyCardProps {
@@ -22,6 +22,9 @@ const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   sold: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   rented: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+  active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  inactive: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  estate: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
 };
 
 const propertyTypeLabels: Record<string, string> = {
@@ -31,6 +34,12 @@ const propertyTypeLabels: Record<string, string> = {
   townhouse: "Townhouse",
   land: "Land",
   commercial: "Commercial",
+  estate: "Estate",
+  cabin: "Cabin",
+  villa: "Villa",
+  loft: "Loft",
+  penthouse: "Penthouse",
+  "single family home": "Single Family Home",
 };
 
 export function PropertyCard({ property, onEdit, onDelete }: PropertyCardProps) {
@@ -59,15 +68,19 @@ export function PropertyCard({ property, onEdit, onDelete }: PropertyCardProps) 
         
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
           <Badge
-            className={`${statusColors[property.status || "available"]} border-0`}
+            className={`${statusColors[(property.status || "available").toLowerCase()] || statusColors["available"]} border-0`}
           >
-            {property.status?.charAt(0).toUpperCase() + property.status?.slice(1)}
+            {(property.status || "Available")?.charAt(0).toUpperCase() + (property.status || "Available")?.slice(1).toLowerCase()}
           </Badge>
           <Button
             variant="secondary"
             size="icon"
             className="h-8 w-8 bg-white/90 dark:bg-black/50 backdrop-blur-sm"
             data-testid={`property-favorite-${property.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              // TODO: Implement favorite/wishlist functionality
+            }}
           >
             <Heart className="h-4 w-4" />
           </Button>
@@ -75,7 +88,7 @@ export function PropertyCard({ property, onEdit, onDelete }: PropertyCardProps) 
 
         <div className="absolute bottom-3 left-3 flex items-center gap-2">
           <Badge variant="secondary" className="bg-white/90 dark:bg-black/50 backdrop-blur-sm text-xs">
-            {propertyTypeLabels[property.propertyType || "house"]}
+            {propertyTypeLabels[(property.propertyType || "house").toLowerCase()] || (property.propertyType || "House")}
           </Badge>
         </div>
       </div>

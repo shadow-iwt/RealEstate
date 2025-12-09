@@ -6,6 +6,7 @@ import { LeadCard } from "@/components/lead-card";
 import { PropertyCard } from "@/components/property-card";
 import { ActivityItem } from "@/components/activity-item";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import {
   Users,
   Building2,
@@ -15,7 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Link } from "wouter";
-import type { Lead, Property, Activity, Agent } from "@shared/schema";
+import type { Lead, Property, Activity, Agent } from "@/lib/types";
 
 interface DashboardStats {
   totalLeads: number;
@@ -29,6 +30,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const { toast } = useToast();
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
@@ -51,6 +53,22 @@ export default function Dashboard() {
       return res.json();
     },
   });
+
+  const handleLeadContact = (leadId: string, method: string) => {
+    const lead = recentLeads?.find((l) => l.id === leadId);
+    const leadName = lead ? `${lead.firstName} ${lead.lastName}` : "Lead";
+    
+    const methodNames: Record<string, string> = {
+      call: "phone call",
+      email: "email",
+      whatsapp: "WhatsApp message",
+    };
+    
+    toast({
+      title: "Contact initiated",
+      description: `${methodNames[method] || "Contact"} to ${leadName} has been initiated.`,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
@@ -154,7 +172,7 @@ export default function Dashboard() {
                 </>
               ) : recentLeads && recentLeads.length > 0 ? (
                 recentLeads.map((lead) => (
-                  <LeadCard key={lead.id} lead={lead} />
+                  <LeadCard key={lead.id} lead={lead} onContact={handleLeadContact} />
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">

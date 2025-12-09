@@ -24,7 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, UserCheck, LayoutGrid, List, Building2, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
-import type { Agent } from "@shared/schema";
+import type { Agent } from "@/lib/types";
 
 const specializationOptions = [
   { value: "all", label: "All Specializations" },
@@ -67,10 +67,12 @@ export default function AgentsPage() {
             Manage your team and track agent performance.
           </p>
         </div>
-        <Button className="gap-2" data-testid="button-new-agent">
-          <Plus className="h-4 w-4" />
-          Add Agent
-        </Button>
+        <Link href="/agents/new">
+          <Button className="gap-2" data-testid="button-new-agent">
+            <Plus className="h-4 w-4" />
+            Add Agent
+          </Button>
+        </Link>
       </div>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

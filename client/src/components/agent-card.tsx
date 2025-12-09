@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Mail, Building2, TrendingUp } from "lucide-react";
-import type { Agent } from "@shared/schema";
+import type { Agent } from "@/lib/types";
 import { Link } from "wouter";
 
 interface AgentCardProps {
@@ -66,11 +66,27 @@ export function AgentCard({ agent }: AgentCardProps) {
           )}
 
           <div className="flex items-center gap-2 mt-6 w-full">
-            <Button variant="outline" size="sm" className="flex-1 gap-2" data-testid={`agent-call-${agent.id}`}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 gap-2" 
+              data-testid={`agent-call-${agent.id}`}
+              onClick={() => {
+                window.location.href = `tel:${agent.phone}`;
+              }}
+            >
               <Phone className="h-4 w-4" />
               Call
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 gap-2" data-testid={`agent-email-${agent.id}`}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 gap-2" 
+              data-testid={`agent-email-${agent.id}`}
+              onClick={() => {
+                window.location.href = `mailto:${agent.email}`;
+              }}
+            >
               <Mail className="h-4 w-4" />
               Email
             </Button>

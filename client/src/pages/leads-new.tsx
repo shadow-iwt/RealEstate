@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertLead } from "@shared/schema";
+import type { InsertLead } from "@/lib/types";
 
 export default function NewLeadPage() {
   const [, setLocation] = useLocation();
@@ -14,7 +14,8 @@ export default function NewLeadPage() {
 
   const createLeadMutation = useMutation({
     mutationFn: async (data: InsertLead) => {
-      return apiRequest("POST", "/api/leads", data);
+      const response = await apiRequest("POST", "/api/leads", data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
@@ -37,6 +38,10 @@ export default function NewLeadPage() {
     createLeadMutation.mutate(data);
   };
 
+  const handleCancel = () => {
+    setLocation("/leads");
+  };
+
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="flex items-center gap-4">
@@ -57,6 +62,7 @@ export default function NewLeadPage() {
 
       <LeadForm
         onSubmit={handleSubmit}
+        onCancel={handleCancel}
         isLoading={createLeadMutation.isPending}
       />
     </div>

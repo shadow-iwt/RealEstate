@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { connectDB, disconnectDB } from "./db";
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,6 +22,24 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Authentication Middleware - Extract userId from token
+app.use((req, res, next) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  
+  if (token) {
+    try {
+      // Token format: userId:timestamp (base64 encoded)
+      const decoded = Buffer.from(token, "base64").toString("utf-8");
+      const [userId] = decoded.split(":");
+      (req as any).userId = userId;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
+  }
+  
+  next();
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -60,6 +79,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Connect to MongoDB
+  const connected = await connectDB();
+  if (!connected) {
+    console.error("Failed to connect to MongoDB. Exiting.");
+    process.exit(1);
+  }
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -67,7 +93,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error("Error:", err);
   });
 
   // importantly only setup vite in development and after
@@ -88,11 +114,17 @@ app.use((req, res, next) => {
   httpServer.listen(
     {
       port,
-      host: "0.0.0.0",
-      reusePort: true,
+      host: "localhost",
     },
     () => {
       log(`serving on port ${port}`);
     },
   );
+
+  // Graceful shutdown
+  process.on("SIGINT", async () => {
+    log("Shutting down gracefully...");
+    await disconnectDB();
+    process.exit(0);
+  });
 })();

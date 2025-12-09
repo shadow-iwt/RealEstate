@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Phone, MessageSquare, Mail, Calendar, FileText, CheckCircle2 } from "lucide-react";
-import type { Activity } from "@shared/schema";
+import type { Activity } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityItemProps {

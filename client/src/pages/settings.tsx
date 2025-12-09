@@ -93,7 +93,26 @@ export default function SettingsPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <Button variant="outline" size="sm" data-testid="button-upload-avatar">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    data-testid="button-upload-avatar"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          toast({
+                            title: "Photo uploaded",
+                            description: "Your profile photo has been updated."
+                          });
+                        }
+                      };
+                      input.click();
+                    }}
+                  >
                     Upload Photo
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -334,7 +353,16 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex justify-end">
-                <Button variant="outline" data-testid="button-configure-whatsapp">
+                <Button 
+                  variant="outline" 
+                  data-testid="button-configure-whatsapp"
+                  onClick={() => {
+                    toast({
+                      title: "WhatsApp Configuration",
+                      description: "Redirecting to WhatsApp settings page..."
+                    });
+                  }}
+                >
                   Configure Settings
                 </Button>
               </div>

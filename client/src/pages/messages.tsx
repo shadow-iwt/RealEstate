@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Lead, Message, MessageTemplate } from "@shared/schema";
+import type { Lead, Message, MessageTemplate } from "@/lib/types";
 
 interface ConversationThread {
   lead: Lead;
@@ -64,12 +64,13 @@ export default function MessagesPage() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { leadId: string; content: string }) => {
-      return apiRequest("POST", "/api/messages", {
+      const response = await apiRequest("POST", "/api/messages", {
         leadId: data.leadId,
         content: data.content,
         direction: "outbound",
         channel: "whatsapp",
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedLeadId] });
@@ -205,7 +206,17 @@ export default function MessagesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" data-testid="button-call-lead">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  data-testid="button-call-lead"
+                  onClick={() => {
+                    toast({
+                      title: "Calling...",
+                      description: `Initiating call to ${selectedLead?.phone}`
+                    });
+                  }}
+                >
                   <Phone className="h-4 w-4" />
                 </Button>
                 <Dialog>

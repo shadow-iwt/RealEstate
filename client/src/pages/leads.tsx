@@ -18,7 +18,7 @@ import { Plus, Search, Filter, Users } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Lead } from "@shared/schema";
+import type { Lead } from "@/lib/types";
 
 const statusOptions = [
   { value: "all", label: "All Leads" },

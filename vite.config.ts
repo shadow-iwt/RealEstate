@@ -5,6 +5,14 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
+    {
+      name: "external-shared",
+      resolveId(id) {
+        if (id.startsWith("@shared/")) {
+          return { id, external: true };
+        }
+      },
+    },
     react(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
@@ -22,9 +30,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@lib": path.resolve(import.meta.dirname, "client", "src", "lib"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
@@ -33,8 +43,17 @@ export default defineConfig({
   },
   server: {
     fs: {
-      strict: true,
+      strict: false,
       deny: ["**/.*"],
     },
+    middlewareMode: false,
+  },
+  optimizeDeps: {
+    exclude: ["drizzle-orm", "drizzle-zod", "@shared/schema"],
+    include: [],
+  },
+  ssr: {
+    noExternal: false,
+    external: ["drizzle-orm", "drizzle-zod"],
   },
 });

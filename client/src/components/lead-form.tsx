@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { insertLeadSchema } from "@shared/schema";
+import { insertLeadSchema } from "@/lib/schemas";
 
 const leadFormSchema = insertLeadSchema.extend({
   firstName: z.string().min(1, "First name is required"),
@@ -33,11 +33,12 @@ type LeadFormData = z.infer<typeof leadFormSchema>;
 
 interface LeadFormProps {
   onSubmit: (data: LeadFormData) => void;
+  onCancel?: () => void;
   isLoading?: boolean;
   defaultValues?: Partial<LeadFormData>;
 }
 
-export function LeadForm({ onSubmit, isLoading, defaultValues }: LeadFormProps) {
+export function LeadForm({ onSubmit, onCancel, isLoading, defaultValues }: LeadFormProps) {
   const form = useForm<LeadFormData>({
     resolver: zodResolver(leadFormSchema),
     defaultValues: {
@@ -257,7 +258,12 @@ export function LeadForm({ onSubmit, isLoading, defaultValues }: LeadFormProps) 
             />
 
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" data-testid="button-cancel">
+              <Button 
+                type="button" 
+                variant="outline" 
+                data-testid="button-cancel"
+                onClick={onCancel}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading} data-testid="button-submit">

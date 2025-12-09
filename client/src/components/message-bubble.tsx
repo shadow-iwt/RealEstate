@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Check, CheckCheck, Clock } from "lucide-react";
-import type { Message } from "@shared/schema";
+import type { Message } from "@/lib/types";
 import { format } from "date-fns";
 
 interface MessageBubbleProps {

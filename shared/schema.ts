@@ -119,6 +119,92 @@ export const messageTemplates = pgTable("message_templates", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI Feature Tables
+export const leadEnrichment = pgTable("lead_enrichment", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  enrichedData: text("enriched_data"), // JSON: clearbit data, public records, etc
+  dataQualityScore: decimal("data_quality_score", { precision: 3, scale: 2 }), // 0-1
+  lastEnrichedAt: timestamp("last_enriched_at"),
+  source: text("source").default("automated"), // automated, manual, api
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const leadIntentSegments = pgTable("lead_intent_segments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  intent: text("intent").notNull(), // buyer, seller, investor, etc
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // 0-1
+  category: text("category").notNull(), // buyer, seller, investor, unknown
+  extractedAt: timestamp("extracted_at"),
+  conversationContext: text("conversation_context"), // partial conversation that led to classification
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const leadScoringResults = pgTable("lead_scoring_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  qualityScore: integer("quality_score"), // 0-100
+  level: text("level").notNull(), // hot, warm, cold
+  reasoning: text("reasoning"),
+  recommendedActions: text("recommended_actions").array(), // array of recommended next steps
+  modelVersion: text("model_version"),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // 0-1
+  scoredAt: timestamp("scored_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const chatbotConversations = pgTable("chatbot_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").references(() => leads.id),
+  agentId: varchar("agent_id").references(() => agents.id),
+  sessionId: varchar("session_id").notNull(), // unique per conversation session
+  messages: text("messages"), // JSON array of {role, content, timestamp}
+  sentiment: text("sentiment"), // positive, negative, neutral
+  sentimentScore: decimal("sentiment_score", { precision: 3, scale: 2 }), // -1 to 1
+  extractedIntents: text("extracted_intents").array(), // array of intents
+  extractedEntities: text("extracted_entities"), // JSON of named entities
+  conversationOutcome: text("conversation_outcome"), // qualified, interested, not_interested, schedule_viewing
+  duration: integer("duration"), // seconds
+  messageCount: integer("message_count"),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const propertyEmbeddings = pgTable("property_embeddings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  propertyId: varchar("property_id").notNull().references(() => properties.id),
+  embedding: text("embedding"), // JSON array of floats (768-dim or configurable)
+  embeddingModel: text("embedding_model"), // e.g., text-embedding-3-large
+  embeddingDimension: integer("embedding_dimension"),
+  features: text("features"), // JSON of {price, bedrooms, bathrooms, location, etc}
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const generatedOutreachMessages = pgTable("generated_outreach_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id),
+  agentId: varchar("agent_id").references(() => agents.id),
+  propertyId: varchar("property_id").references(() => properties.id),
+  messageType: text("message_type").notNull(), // initial, follow_up, closing, etc
+  channel: text("channel").default("email"), // email, sms, whatsapp, etc
+  subject: text("subject"), // for emails
+  body: text("body").notNull(),
+  personalizedElements: text("personalized_elements").array(), // array of what was personalized
+  generationPrompt: text("generation_prompt"), // the prompt used to generate
+  modelVersion: text("model_version"),
+  wasUsed: boolean("was_used").default(false),
+  sentAt: timestamp("sent_at"),
+  responseReceived: boolean("response_received").default(false),
+  responseContent: text("response_content"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one }) => ({
   agent: one(agents, {
@@ -186,6 +272,61 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+// AI Relations
+export const leadEnrichmentRelations = relations(leadEnrichment, ({ one }) => ({
+  lead: one(leads, {
+    fields: [leadEnrichment.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const leadIntentSegmentsRelations = relations(leadIntentSegments, ({ one }) => ({
+  lead: one(leads, {
+    fields: [leadIntentSegments.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const leadScoringResultsRelations = relations(leadScoringResults, ({ one }) => ({
+  lead: one(leads, {
+    fields: [leadScoringResults.leadId],
+    references: [leads.id],
+  }),
+}));
+
+export const chatbotConversationsRelations = relations(chatbotConversations, ({ one }) => ({
+  lead: one(leads, {
+    fields: [chatbotConversations.leadId],
+    references: [leads.id],
+  }),
+  agent: one(agents, {
+    fields: [chatbotConversations.agentId],
+    references: [agents.id],
+  }),
+}));
+
+export const propertyEmbeddingsRelations = relations(propertyEmbeddings, ({ one }) => ({
+  property: one(properties, {
+    fields: [propertyEmbeddings.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const generatedOutreachMessagesRelations = relations(generatedOutreachMessages, ({ one }) => ({
+  lead: one(leads, {
+    fields: [generatedOutreachMessages.leadId],
+    references: [leads.id],
+  }),
+  agent: one(agents, {
+    fields: [generatedOutreachMessages.agentId],
+    references: [agents.id],
+  }),
+  property: one(properties, {
+    fields: [generatedOutreachMessages.propertyId],
+    references: [properties.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertAgentSchema = createInsertSchema(agents).omit({ id: true, createdAt: true, totalDeals: true, totalRevenue: true });
@@ -194,6 +335,14 @@ export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, creat
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertMessageTemplateSchema = createInsertSchema(messageTemplates).omit({ id: true, createdAt: true });
+
+// AI Insert schemas
+export const insertLeadEnrichmentSchema = createInsertSchema(leadEnrichment).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLeadIntentSegmentsSchema = createInsertSchema(leadIntentSegments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLeadScoringResultsSchema = createInsertSchema(leadScoringResults).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertChatbotConversationsSchema = createInsertSchema(chatbotConversations).omit({ id: true, createdAt: true });
+export const insertPropertyEmbeddingsSchema = createInsertSchema(propertyEmbeddings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertGeneratedOutreachMessagesSchema = createInsertSchema(generatedOutreachMessages).omit({ id: true, createdAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -210,3 +359,17 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessageTemplate = z.infer<typeof insertMessageTemplateSchema>;
 export type MessageTemplate = typeof messageTemplates.$inferSelect;
+
+// AI Types
+export type LeadEnrichment = typeof leadEnrichment.$inferSelect;
+export type InsertLeadEnrichment = z.infer<typeof insertLeadEnrichmentSchema>;
+export type LeadIntentSegment = typeof leadIntentSegments.$inferSelect;
+export type InsertLeadIntentSegment = z.infer<typeof insertLeadIntentSegmentsSchema>;
+export type LeadScoringResult = typeof leadScoringResults.$inferSelect;
+export type InsertLeadScoringResult = z.infer<typeof insertLeadScoringResultsSchema>;
+export type ChatbotConversation = typeof chatbotConversations.$inferSelect;
+export type InsertChatbotConversation = z.infer<typeof insertChatbotConversationsSchema>;
+export type PropertyEmbedding = typeof propertyEmbeddings.$inferSelect;
+export type InsertPropertyEmbedding = z.infer<typeof insertPropertyEmbeddingsSchema>;
+export type GeneratedOutreachMessage = typeof generatedOutreachMessages.$inferSelect;
+export type InsertGeneratedOutreachMessage = z.infer<typeof insertGeneratedOutreachMessagesSchema>;

@@ -1,14 +1,28 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "@shared/schema";
+import "dotenv/config";
+import mongoose from "mongoose";
 
-const { Pool } = pg;
+const MONGODB_URL = process.env.MONGODB_URL || "mongodb://localhost:27017/hobbyconnect";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+export async function connectDB() {
+  try {
+    await mongoose.connect(MONGODB_URL, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    console.log("Connected to MongoDB");
+    return true;
+  } catch (error) {
+    console.error("Failed to connect to MongoDB:", error);
+    return false;
+  }
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
+export async function disconnectDB() {
+  try {
+    await mongoose.disconnect();
+    console.log("Disconnected from MongoDB");
+  } catch (error) {
+    console.error("Failed to disconnect from MongoDB:", error);
+  }
+}
+
+export { mongoose };

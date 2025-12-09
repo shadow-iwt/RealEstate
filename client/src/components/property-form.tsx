@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { insertPropertySchema } from "@shared/schema";
+import { insertPropertySchema } from "@/lib/schemas";
 
 const propertyFormSchema = insertPropertySchema.extend({
   title: z.string().min(1, "Title is required"),
@@ -34,11 +34,12 @@ type PropertyFormData = z.infer<typeof propertyFormSchema>;
 
 interface PropertyFormProps {
   onSubmit: (data: PropertyFormData) => void;
+  onCancel?: () => void;
   isLoading?: boolean;
   defaultValues?: Partial<PropertyFormData>;
 }
 
-export function PropertyForm({ onSubmit, isLoading, defaultValues }: PropertyFormProps) {
+export function PropertyForm({ onSubmit, onCancel, isLoading, defaultValues }: PropertyFormProps) {
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
@@ -338,7 +339,12 @@ export function PropertyForm({ onSubmit, isLoading, defaultValues }: PropertyFor
             </div>
 
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" data-testid="button-cancel">
+              <Button 
+                type="button" 
+                variant="outline" 
+                data-testid="button-cancel"
+                onClick={onCancel}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading} data-testid="button-submit">
